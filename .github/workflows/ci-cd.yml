@@ -35,6 +35,9 @@ jobs:
         run: |
           docker compose exec -T app php artisan migrate --force
 
+      - name: ⚙️ Generate APP_KEY
+        run: docker compose exec -T app php artisan key:generate
+
       - name: 🧪 Rodar testes
         run: |
           docker compose exec -T app php artisan test
