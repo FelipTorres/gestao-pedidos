@@ -1,10 +1,13 @@
-FROM php:8.2-fpm
+# ==========================
+# ETAPA 1 - BUILD DA APLICAÇÃO
+# ==========================
+FROM php:8.2-fpm AS builder
 
-# Instala dependências do sistema
+# Instala dependências do sistema e extensões PHP
 RUN apt-get update && apt-get install -y \
-    zip unzip git curl libpng-dev libjpeg-dev libfreetype6-dev \
+    zip unzip git curl libpng-dev libjpeg-dev libfreetype6-dev libonig-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd pdo pdo_mysql
+    && docker-php-ext-install gd pdo pdo_mysql mbstring
 
 # Instala o Composer
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
@@ -12,14 +15,44 @@ COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 # Define diretório de trabalho
 WORKDIR /var/www
 
-# Copia os arquivos do projeto
+# Copia arquivos do projeto
 COPY . .
 
-# Instala dependências do Laravel
-RUN composer install
+# Instala dependências do Laravel (modo produção)
+RUN composer install --no-dev --optimize-autoloader
 
-# Define permissões (importante no Laravel)
-RUN chown -R www-data:www-data storage bootstrap/cache
+# Gera cache de configuração (melhor performance)
+RUN php artisan config:clear && php artisan route:clear && php artisan view:clear
 
-EXPOSE 9000
-CMD ["php-fpm"]
+
+# ==========================
+# ETAPA 2 - PRODUÇÃO (RUNTIME)
+# ==========================
+FROM php:8.2-fpm
+
+# Instala Nginx e supervisord (para gerenciar ambos os processos)
+RUN apt-get update && apt-get install -y nginx supervisor && apt-get clean
+
+# Copia arquivos da aplicação (do stage anterior)
+COPY --from=builder /var/www /var/www
+
+# Define diretório de trabalho
+WORKDIR /var/www
+
+# Copia configuração customizada do Nginx
+COPY ./docker/nginx/default.conf /etc/nginx/sites-available/default
+
+# Copia configuração do supervisor
+COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Define permissões corretas
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+
+# Gera APP_KEY automaticamente (caso não exista)
+RUN php artisan key:generate --force || true
+
+# Expõe porta padrão HTTP
+EXPOSE 80
+
+# Inicia o supervisor (que sobe nginx + php-fpm juntos)
+CMD ["/usr/bin/supervisord"]
