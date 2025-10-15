@@ -35,9 +35,9 @@ jobs:
         run: |
           docker compose exec -T app php artisan migrate --force
 
-      # - name: 🧪 Rodar testes
-      #   run: |
-      #     docker compose exec -T app php artisan test
+      - name: 🧪 Rodar testes
+        run: |
+          docker compose exec -T app php artisan test
 
       - name: 🧹 Encerrar containers
         if: always()

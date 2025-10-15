@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property float $price
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property Stock[] $stocks
+ * @property ProductVariation[] $variations
  *
  * @method static Product create(array $validate)
  * @method static Product findOrFail(int $id)

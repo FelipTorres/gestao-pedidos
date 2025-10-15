@@ -19,6 +19,7 @@ class ProductController extends Controller
             $mainStocks = [];
             $variationStocks = [];
 
+            /** @var Product $product */
             foreach ($products as $product) {
                 $mainStocks[$product->id] = $product->stocks->firstWhere('variation_id', null);
                 $variationStocks[$product->id] = $product->variations->map(function($variation) use ($product) {
