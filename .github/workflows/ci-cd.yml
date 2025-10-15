@@ -1,0 +1,40 @@
+name: CI - Laravel + Docker
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  build-and-test:
+    name: 🧪 Build & Test Laravel (Docker)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 🐳 Configurar Docker Compose
+        run: |
+          docker compose down || true
+          docker compose build
+          docker compose up -d
+
+      - name: ⏳ Aguardar MySQL iniciar
+        run: |
+          echo "Aguardando MySQL iniciar..."
+          sleep 15
+          docker compose exec -T mysql mysql -h localhost -ularavel -plaravel -e "SHOW DATABASES;"
+
+      - name: ⚙️ Executar migrations
+        run: |
+          docker compose exec -T app php artisan migrate --force
+
+      # - name: 🧪 Rodar testes
+      #   run: |
+      #     docker compose exec -T app php artisan test
+
+      - name: 🧹 Encerrar containers
+        if: always()
+        run: docker compose down
