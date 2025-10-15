@@ -28,6 +28,9 @@ jobs:
             docker compose exec -T app php -v && break || sleep 2
           done
 
+      - name: 🧩 Copiar arquivo de ambiente
+        run: docker compose exec -T app cp .env.example .env
+
       - name: 📦 Instalar dependências Composer
         run: |
           docker compose exec -T app composer install --no-interaction --prefer-dist --optimize-autoloader
@@ -42,10 +45,7 @@ jobs:
         run: |
           docker compose exec -T app php artisan migrate --force
 
-      - name: 🧩 Copy environment file
-        run: docker compose exec -T app cp .env.example .env
-
-      - name: ⚙️ Generate APP_KEY
+      - name: ⚙️ Gerar APP_KEY
         run: docker compose exec -T app php artisan key:generate
 
       - name: 🧪 Rodar testes
