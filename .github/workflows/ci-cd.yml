@@ -21,6 +21,10 @@ jobs:
           docker compose build
           docker compose up -d
 
+      - name: 📦 Instalar dependências Composer
+        run: |
+          docker compose exec -T app composer install --no-interaction --prefer-dist --optimize-autoloader
+
       - name: ⏳ Aguardar MySQL iniciar
         run: |
           echo "Aguardando MySQL iniciar..."
