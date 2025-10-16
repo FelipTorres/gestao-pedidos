@@ -53,12 +53,14 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 RUN php artisan key:generate --force || true
 
 # Expõe porta padrão HTTP
-EXPOSE 80
+ENV PORT=10000
+EXPOSE ${PORT}
 
 # Copia o script de inicialização
 COPY ./docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Usa o entrypoint personalizado para rodar migrations e iniciar supervisor
+# Usa o entrypoint personalizado
 ENTRYPOINT ["/entrypoint.sh"]
+
 
