@@ -53,7 +53,7 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 RUN php artisan key:generate --force || true
 
 # Expõe porta padrão HTTP
-EXPOSE 9000
+EXPOSE 80
 
 # Inicia o supervisor (que sobe nginx + php-fpm juntos)
-CMD ["/usr/bin/supervisord"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
