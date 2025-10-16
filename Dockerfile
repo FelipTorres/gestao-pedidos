@@ -28,7 +28,7 @@ RUN php artisan config:clear && php artisan route:clear && php artisan view:clea
 # ==========================
 # ETAPA 2 - PRODUÇÃO (RUNTIME)
 # ==========================
-FROM php:8.2-fpm
+FROM builder AS runtime
 
 # Instala Nginx e supervisord (para gerenciar ambos os processos)
 RUN apt-get update && apt-get install -y nginx supervisor && apt-get clean
@@ -38,6 +38,7 @@ COPY --from=builder /var/www /var/www
 
 # Define diretório de trabalho
 WORKDIR /var/www
+COPY --from=builder /var/www /var/www
 
 # Copia configuração customizada do Nginx
 COPY ./docker/nginx/default.conf /etc/nginx/sites-available/default
@@ -52,7 +53,7 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 RUN php artisan key:generate --force || true
 
 # Expõe porta padrão HTTP
-EXPOSE 80
+EXPOSE 9000
 
 # Inicia o supervisor (que sobe nginx + php-fpm juntos)
 CMD ["/usr/bin/supervisord"]

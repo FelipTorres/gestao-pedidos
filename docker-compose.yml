@@ -8,6 +8,8 @@ services:
             - .:/var/www
         networks:
             - laravel
+        expose:
+            - 9000
 
     nginx:
         image: nginx:alpine
