@@ -55,5 +55,10 @@ RUN php artisan key:generate --force || true
 # Expõe porta padrão HTTP
 EXPOSE 80
 
-# Inicia o supervisor (que sobe nginx + php-fpm juntos)
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Copia o script de inicialização
+COPY ./docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Usa o entrypoint personalizado para rodar migrations e iniciar supervisor
+ENTRYPOINT ["/entrypoint.sh"]
+
