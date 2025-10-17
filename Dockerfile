@@ -27,10 +27,13 @@ RUN php artisan config:clear && php artisan route:clear && php artisan view:clea
 # ==========================
 # ETAPA 2 - PRODUÇÃO (RUNTIME)
 # ==========================
-FROM php:8.2-fpm AS runtime
+FROM builder AS runtime
 
-# Instala Nginx, Supervisor e envsubst
-RUN apt-get update && apt-get install -y nginx supervisor gettext-base && apt-get clean
+# Instala Nginx e supervisord (para gerenciar ambos os processos)
+RUN apt-get update && apt-get install -y nginx supervisor && apt-get clean
+
+# Copia arquivos da aplicação (do stage anterior)
+COPY --from=builder /var/www /var/www
 
 # Define diretório de trabalho
 WORKDIR /var/www
