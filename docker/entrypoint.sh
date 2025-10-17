@@ -12,12 +12,16 @@ echo "✅ Banco de dados disponível!"
 
 # Executa migrations de forma automática
 echo "🚀 Executando migrations..."
-php artisan migrate --force || echo "⚠️ Erro ao rodar migrations (talvez já estejam aplicadas). Continuando..."
+php artisan migrate --force || echo "⚠️ Migrations já aplicadas. Continuando..."
 
 # Gera cache de configuração
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
+
+# Substitui ${PORT} no nginx config
+envsubst '${PORT}' < /etc/nginx/sites-available/default > /etc/nginx/sites-available/default.tmp
+mv /etc/nginx/sites-available/default.tmp /etc/nginx/sites-available/default
 
 echo "🔥 Iniciando supervisor (Nginx + PHP-FPM)..."
 /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf

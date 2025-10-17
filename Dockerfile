@@ -24,20 +24,18 @@ RUN composer install --no-dev --optimize-autoloader
 # Gera cache de configuração (melhor performance)
 RUN php artisan config:clear && php artisan route:clear && php artisan view:clear
 
-
 # ==========================
 # ETAPA 2 - PRODUÇÃO (RUNTIME)
 # ==========================
-FROM builder AS runtime
+FROM php:8.2-fpm AS runtime
 
-# Instala Nginx e supervisord (para gerenciar ambos os processos)
-RUN apt-get update && apt-get install -y nginx supervisor && apt-get clean
-
-# Copia arquivos da aplicação (do stage anterior)
-COPY --from=builder /var/www /var/www
+# Instala Nginx, Supervisor e envsubst
+RUN apt-get update && apt-get install -y nginx supervisor gettext-base && apt-get clean
 
 # Define diretório de trabalho
 WORKDIR /var/www
+
+# Copia aplicação do builder
 COPY --from=builder /var/www /var/www
 
 # Copia configuração customizada do Nginx
@@ -60,5 +58,5 @@ EXPOSE ${PORT}
 COPY ./docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Usa o entrypoint personalizado
+# Usa o entrypoint personalizado para rodar migrations e iniciar supervisor
 ENTRYPOINT ["/entrypoint.sh"]
