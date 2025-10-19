@@ -29,8 +29,8 @@ RUN php artisan config:clear && php artisan route:clear && php artisan view:clea
 # ==========================
 FROM builder AS runtime
 
-# Instala Nginx e supervisord (para gerenciar ambos os processos)
-RUN apt-get update && apt-get install -y nginx supervisor && apt-get clean
+# Instala Nginx, Supervisor e envsubst (gettext)
+RUN apt-get update && apt-get install -y nginx supervisor gettext && apt-get clean
 
 # Copia arquivos da aplicação (do stage anterior)
 COPY --from=builder /var/www /var/www
@@ -43,8 +43,6 @@ COPY --from=builder /var/www /var/www
 
 # Copia configuração customizada do Nginx
 COPY ./docker/nginx/default.conf /etc/nginx/sites-available/default
-
-# Copia configuração do supervisor
 COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Define permissões corretas
@@ -53,9 +51,8 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 # Gera APP_KEY automaticamente (caso não exista)
 RUN php artisan key:generate --force || true
 
-# Expõe porta padrão HTTP
-ENV PORT=10000
-EXPOSE ${PORT}
+# Expõe porta HTTP padrão
+EXPOSE 80
 
 # Copia o script de inicialização
 COPY ./docker/entrypoint.sh /entrypoint.sh

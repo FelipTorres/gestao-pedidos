@@ -19,5 +19,11 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-echo "🔥 Iniciando supervisor (Nginx + PHP-FPM)..."
-/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+# Substitui variável PORT no Nginx
+echo "🌐 Ajustando Nginx para a porta ${PORT}..."
+envsubst '${PORT}' < /etc/nginx/sites-available/default > /etc/nginx/sites-available/default.tmp
+mv /etc/nginx/sites-available/default.tmp /etc/nginx/sites-available/default
+
+# Inicia supervisor (Nginx + PHP-FPM)
+echo "🔥 Iniciando supervisor..."
+exec /usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf
