@@ -29,7 +29,7 @@ jobs:
           done
 
       - name: 🧩 Copiar arquivo de ambiente
-        run: cp .env.example .env
+        run: docker compose exec -T app cp .env.example .env
 
       - name: 📦 Instalar dependências Composer
         run: |
@@ -41,15 +41,16 @@ jobs:
           sleep 15
           docker compose exec -T mysql mysql -h localhost -ularavel -plaravel -e "SHOW DATABASES;"
 
-      - name: ⚙️ Preparar Laravel (.env + APP_KEY)
-        run: |
-          docker compose exec -T app sh -c "cp .env.example .env || true && php artisan key:generate --force"
-
       - name: ⚙️ Executar migrations
-        run: docker compose exec -T app php artisan migrate --force
+        run: |
+          docker compose exec -T app php artisan migrate --force
+
+      - name: ⚙️ Gerar APP_KEY
+        run: docker compose exec -T app php artisan key:generate
 
       - name: 🧪 Rodar testes
-        run: docker compose exec -T app php artisan test
+        run: |
+          docker compose exec -T app php artisan test
 
       - name: 🧹 Encerrar containers
         if: always()
