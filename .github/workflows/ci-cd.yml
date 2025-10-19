@@ -16,7 +16,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🧩 Criar arquivo .env a partir do exemplo
-        run: cp .env.example .env
+        run: |
+          cp .env.example .env
+          php -r "file_exists('.env') || copy('.env.example', '.env');"
+          php -r "\$env = file_get_contents('.env'); if (strpos(\$env, 'APP_KEY=base64:') === false) { \$key = 'base64:'.base64_encode(random_bytes(32)); file_put_contents('.env', preg_replace('/^APP_KEY=.*/m', 'APP_KEY='.\$key, \$env)); }"
 
       - name: 🐳 Configurar Docker Compose
         run: |
@@ -31,9 +34,6 @@ jobs:
             docker compose exec -T app php -v && break || sleep 2
           done
 
-      - name: 🧩 Copiar arquivo de ambiente
-        run: docker compose exec -T app cp .env.example .env
-
       - name: 📦 Instalar dependências Composer
         run: |
           docker compose exec -T app composer install --no-interaction --prefer-dist --optimize-autoloader
@@ -45,15 +45,15 @@ jobs:
           docker compose exec -T mysql mysql -h localhost -ularavel -plaravel -e "SHOW DATABASES;"
 
       - name: ⚙️ Executar migrations
-        run: |
-          docker compose exec -T app php artisan migrate --force
+        run: docker compose exec -T app php artisan migrate --force
 
       - name: ⚙️ Gerar APP_KEY
-        run: docker compose exec -T app php artisan key:generate
+        run: |
+          docker compose exec -T app php artisan key:generate
+          docker compose exec -T app php artisan config:clear
 
       - name: 🧪 Rodar testes
-        run: |
-          docker compose exec -T app php artisan test
+        run: docker compose exec -T app php artisan test
 
       - name: 🧹 Encerrar containers
         if: always()
