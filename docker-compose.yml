@@ -8,6 +8,16 @@ services:
             - .:/var/www
         networks:
             - laravel
+        depends_on:
+            - mysql
+        env_file:
+            - .env
+        environment:
+            DB_HOST: mysql
+            DB_PORT: 3306
+            DB_DATABASE: laravel
+            DB_USERNAME: laravel
+            DB_PASSWORD: laravel
         expose:
             - 9000
 
